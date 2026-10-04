@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout1}">
+<head>
+    <title>Produits</title>
+</head>
+<body>
+<section layout:fragment="content">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">Liste des produits
+                <span class="badge text-bg-secondary" th:text="${totalElements}"></span>
+            </span>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/newProduct}" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouveau
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="get" th:action="@{/user/index}" class="row g-2 mb-3">
+                <div class="col-sm-6 col-md-4">
+                    <input type="text" name="keyword" th:value="${keyword}" class="form-control"
+                           placeholder="Rechercher par nom...">
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> Chercher
+                    </button>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>ID</th><th>Nom</th><th>Prix</th><th>Quantité</th>
+                        <th sec:authorize="hasRole('ADMIN')" class="text-end">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${products}">
+                        <td th:text="${p.id}"></td>
+                        <td th:text="${p.name}"></td>
+                        <td th:text="${#numbers.formatDecimal(p.price, 1, 'WHITESPACE', 2, 'COMMA')} + ' DH'"></td>
+                        <td>
+                            <span th:text="${p.quantity}"
+                                  th:classappend="${p.quantity < 10} ? 'badge text-bg-warning' : ''"></span>
+                        </td>
+                        <td sec:authorize="hasRole('ADMIN')" class="text-end text-nowrap">
+                            <a th:href="@{/admin/editProduct(id=${p.id})}" class="btn btn-sm btn-success">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" th:action="@{/admin/delete}" class="d-inline"
+                                  onsubmit="return confirm('Voulez-vous vraiment supprimer ce produit ?')">
+                                <input type="hidden" name="id" th:value="${p.id}">
+                                <input type="hidden" name="keyword" th:value="${keyword}">
+                                <input type="hidden" name="page" th:value="${currentPage}">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(products)}">
+                        <td colspan="5" class="text-center text-muted">Aucun produit trouvé</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <ul class="pagination mb-0" th:if="${pages.length > 1}">
+                <li class="page-item" th:each="page, status : ${pages}"
+                    th:classappend="${status.index == currentPage} ? 'active' : ''">
+                    <a class="page-link" th:text="${status.index + 1}"
+                       th:href="@{/user/index(page=${status.index}, keyword=${keyword})}"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</section>
+</body>
+</html>
